@@ -32,7 +32,7 @@ def authorized() -> str:
     abort(401)
 
 
-@app_views.route("/forbidden", methods=["GET"], strict_slashes=False)
+@app_views.route("/forbidden", methods=['GET'], strict_slashes=False)
 def forbid() -> str:
     """End point to trigger a 403 error for testing
     """
