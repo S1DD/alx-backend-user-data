@@ -6,37 +6,41 @@ from typing import List, TypeVar
 
 class Auth:
     def require_auth(self, path: str, excluded_paths: List[str]) -> bool:
-        """Required auth"""
+        """
+    Checks if authentication is required for a given path.
+
+    Parameters:
+        path (str): The URL path to check.
+        excluded_paths (List[str]): A list of paths that do not require authentication.
+            - Paths may include a trailing '*' to indicate prefix matching.
+
+    Returns:
+        bool: True if authentication is required, False otherwise.
+
+    Notes:
+        - A trailing slash is appended to the path and excluded paths (if missing)
+          to ensure consistent comparison.
+        - If the path matches any excluded path or matches a prefix (when '*' is used),
+          authentication is not required.
+    """
         if path is None or excluded_paths is None or not excluded_paths:
-            return
+            return True
 
-        if path[:-1] == '/':
-            path = path[:-1]
+        # Normalize path by ensuring it ends with '/'
+        if not path.endswith('/'):
+            path += '/'
 
-        has_ending_slash = False
-
-        for excluded_path in excluded_paths:
-            if excluded_path[-1] == '/':
-                excluded_path = excluded_path[:-1]
-                has_ending_slash = True
-
-            if excluded_path.endswith('*'):
-                idx_after_last_slash = excluded_path.rfind('/') + 1
-                excluded = excluded_path[idx_after_last_slash:-1]
-
-                idx_after_last_slash = path.rfind('/') + 1
-                tmp_path = path[idx_after_last_slash:]
-
-                if excluded in tmp_path:
+        for excluded in excluded_paths:
+            if excluded.endswith('*'):
+                # Match prefix if wildcard present
+                if path.startswith(excluded[:-1]):
                     return False
-
-            if contains_slash:
-                contains_slash = False
-
-        path += '/'
-
-        if path in excluded_paths:
-            return False
+            else:
+                # Normalize excluded path
+                if not excluded.endswith('/'):
+                    excluded += '/'
+                if path == excluded:
+                    return False
 
         return True
 
@@ -46,10 +50,8 @@ class Auth:
         """
         if request is None:
             return None
-
-        return request.headers.get('Authorization')
+        return request.headers.get('Authorization', None)
 
     def current_user(self, request=None) -> TypeVar('User'):
-        """Current user"""
-        request = Flask(__name__)
+        """Retrieves the current authenticated user"""
         return None
